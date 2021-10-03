@@ -1,4 +1,5 @@
-﻿using Hangfire_NetCore_SQLServer.Shared;
+﻿using Hangfire;
+using Hangfire_NetCore_SQLServer.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -35,6 +36,18 @@ namespace Hangfire_NetCore_SQLServer.Server.Controllers
 				Summary = Summaries[rng.Next(Summaries.Length)]
 			})
 			.ToArray();
+		}
+
+		/// <summary>
+		/// Run job in an api example
+		/// </summary>
+		/// <returns></returns>
+		[HttpGet]
+		[Route("RunJob")]
+		public IActionResult RunJob()
+		{
+			var idJob = BackgroundJob.Schedule(() => Console.WriteLine(@"This will run every hour"), TimeSpan.FromHours(1));
+			return Ok($"Job id: {idJob}");
 		}
 	}
 }
