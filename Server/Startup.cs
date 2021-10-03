@@ -1,14 +1,13 @@
 using Hangfire;
+using Hangfire_NetCore_SQLServer.Server.Controllers;
 using Hangfire_NetCore_SQLServer.Server.Extensions;
+using Hangfire_NetCore_SQLServer.Shared;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
-using System.Linq;
 
 namespace Hangfire_NetCore_SQLServer.Server
 {
@@ -29,11 +28,13 @@ namespace Hangfire_NetCore_SQLServer.Server
 			services.AddControllersWithViews();
 			services.AddRazorPages();
 
+			// Configure hangfire
 			services.ConfigHangfire(Configuration);
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IBackgroundJobClient jobClient)
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IBackgroundJobClient jobClient
+		, IRecurringJobManager recurringJob, IServiceProvider serviceProvider)
 		{
 			if (env.IsDevelopment())
 			{
@@ -60,10 +61,24 @@ namespace Hangfire_NetCore_SQLServer.Server
 				endpoints.MapFallbackToFile("index.html");
 				endpoints.MapHangfireDashboard();
 			});
-
+			
+			// Set to use hangfire dashboard
 			app.UseHangfireDashboard();
 
+			// Run at start app
 			jobClient.Enqueue(() => Console.WriteLine(@"Hello world from hangfire"));
+
+			// Run 30 second after at start app
+			jobClient.Schedule(() => Console.WriteLine(@"Run 30 second after at start app"), TimeSpan.FromSeconds(30));
+
+			// This will run every minute
+			recurringJob.AddOrUpdate(@"This will run every minute", () => Console.WriteLine(@"This will run every minute"), Cron.Minutely);
+
+			// Get service
+			var weather = new WeatherForecast();
+
+			// This will run every single day
+			recurringJob.AddOrUpdate(@"This will run every single day", () => weather.Get(), Cron.Daily);
 		}
 	}
 }
