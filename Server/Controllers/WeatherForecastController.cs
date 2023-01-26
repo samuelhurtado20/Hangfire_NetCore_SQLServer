@@ -39,7 +39,7 @@ namespace Hangfire_NetCore_SQLServer.Server.Controllers
 		}
 
 		/// <summary>
-		/// Run job in an api example
+		/// Example: How run a background job in an api and return its id
 		/// </summary>
 		/// <returns></returns>
 		[HttpGet]
